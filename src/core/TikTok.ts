@@ -392,21 +392,23 @@ export class TikTokScraper extends EventEmitter {
      */
     // eslint-disable-next-line class-methods-use-this
     private async extractVideoId(uri): Promise<string> {
-        try {
-            const result = await rp({ uri });
-            const position = Buffer.from(result).indexOf('vid:');
-            if (position !== -1) {
-                const id = Buffer.from(result)
-                    .slice(position + 4, position + 36)
-                    .toString();
-                return `https://api2-16-h2.musical.ly/aweme/v1/play/?video_id=${id}&vr_type=0&is_play_url=1&source=PackSourceEnum_PUBLISH&media_type=4${
-                    this.hdVideo ? `&ratio=540p` : ''
-                }`;
-            }
-            throw new Error(`Cant extract video id`);
-        } catch (error) {
-            return '';
-        }
+        return new Promise((resolve, reject) => {
+            const req = rp({ uri });
+            req.on('data', data => {
+                const dataBuffer = Buffer.from(data);
+                const position = dataBuffer.indexOf('vid:');
+                if (position !== -1) {
+                    const id = dataBuffer.slice(position + 4, position + 36).toString();
+                    const noWMUrl = `https://api2-16-h2.musical.ly/aweme/v1/play/?video_id=${id}&vr_type=0&is_play_url=1&source=PackSourceEnum_PUBLISH&media_type=4${
+                        this.hdVideo ? `&ratio=540p` : ''
+                    }`;
+                    resolve(noWMUrl);
+                    // abort this request, no need download all of the video.
+                    req.abort();
+                }
+            });
+            req.on('error', reject);
+        });
     }
 
     /**

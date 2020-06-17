@@ -2,7 +2,9 @@ import { getVideoMeta } from '../src';
 
 (async () => {
     try {
-        const videoMeta = await getVideoMeta('https://www.tiktok.com/@tiktok/video/6800111723257941253', {});
+        const videoMeta = await getVideoMeta('https://www.tiktok.com/@tiktok/video/6800111723257941253', {
+            hdVideo: true
+        });
         console.log(videoMeta);
     } catch (error) {
         console.log(error);
